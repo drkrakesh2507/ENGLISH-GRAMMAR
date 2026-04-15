@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Grammar Champ Kids</title>
+<meta name="description" content="A fun English grammar game for kids." />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#dff6ff" />
+<style>
+body { font-family: Arial, sans-serif; background: #dff6ff; text-align: center; margin: 0; padding: 0; }
+.box { background: white; padding: 20px; margin: 20px auto; border-radius: 15px; max-width: 480px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); }
+button { padding: 10px 15px; margin: 5px; font-size: 16px; border: none; border-radius: 10px; cursor: pointer; background: #1d8ecf; color: white; }
+button.secondary { background: #555; }
+#stars { color: orange; font-size: 20px; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+<h1>🏆 Grammar Champ Kids</h1>
+<div class="box">
+<button onclick="learn()">📖 Learn</button>
+<button onclick="quiz()">🎮 Play Quiz</button>
+<button onclick="voiceQuiz()">🎤 Voice Quiz</button>
+<button onclick="dashboard()">📊 Parent Report</button>
+<button id="install-btn" class="secondary" style="display:none;">⬇️ Install App</button>
+</div>
+<div id="content" class="box"></div>
+<div id="stars"></div>
+<script>
+let deferredPrompt;
+let score = parseInt(localStorage.getItem('score')) || 0;
+let level = parseInt(localStorage.getItem('level')) || 1;
+const installBtn = document.getElementById('install-btn');
+installBtn.addEventListener('click', promptInstall);
+
+if ('serviceWorker' in navigator) {
+ window.addEventListener('load', function() {
+   navigator.serviceWorker.register('sw.js')
+     .then(() => console.log('Service Worker registered'))
+     .catch(err => console.log('Service Worker registration failed:', err));
+ });
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+ e.preventDefault();
+ deferredPrompt = e;
+ installBtn.style.display = 'inline-block';
+});
+
+window.addEventListener('appinstalled', () => {
+ installBtn.style.display = 'none';
+ alert('App installed!');
+});
+
+function promptInstall() {
+ if (!deferredPrompt) return;
+ deferredPrompt.prompt();
+ deferredPrompt.userChoice.then(choiceResult => {
+   if (choiceResult.outcome === 'accepted') {
+     console.log('User accepted the install prompt');
+   }
+   deferredPrompt = null;
+   installBtn.style.display = 'none';
+ });
+}
+
+function speak(text) {
+ let s = new SpeechSynthesisUtterance(text);
+ speechSynthesis.speak(s);
+}
+
+function learn() {
+ document.getElementById('content').innerHTML = `
+ <h2>📚 Grammar Topics</h2>
+ <p><b>Noun:</b> Name of person/place</p>
+ <p><b>Verb:</b> Action word</p>
+ <p><b>Tense:</b> Time of action</p>
+ <button onclick="speak('Noun is naming word. Verb is action word. Tense shows time.')">🔊 Listen</button>
+ `;
+}
+
+function quiz() {
+ let questions = [
+   {q:'Which is a noun?', a:'Dog'},
+   {q:'Which is a verb?', a:'Run'},
+   {q:'Past of eat?', a:'Ate'},
+   {q:'Which is adjective?', a:'Happy'}
+ ];
+ let q = questions[Math.floor(Math.random() * questions.length)];
+ document.getElementById('content').innerHTML = `
+ <h3>${q.q}</h3>
+ <button onclick="check('${q.a}','${q.a}')">${q.a}</button>
+ <button onclick="check('wrong','${q.a}')">Wrong</button>
+ `;
+}
+
+function check(ans, correct) {
+ if (ans === correct) {
+   score += 10;
+   levelUp();
+   speak('Great job!');
+   alert('⭐ Correct!');
+ } else {
+   alert('❌ Try again');
+ }
+ save();
+}
+
+function voiceQuiz() {
+ speak('Say the past tense of eat');
+ if (!window.webkitSpeechRecognition && !window.SpeechRecognition) {
+   alert('Voice quiz requires browser speech recognition support.');
+   return;
+ }
+ let Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+ let recognition = new Recognition();
+ recognition.start();
+ recognition.onresult = function(e) {
+   let text = e.results[0][0].transcript.toLowerCase();
+   if (text.includes('ate')) {
+     score += 10;
+     speak('Correct');
+     alert('⭐ Correct!');
+   } else {
+     speak('Wrong answer');
+     alert('❌ Wrong answer');
+   }
+   save();
+ };
+}
+
+function dashboard() {
+ document.getElementById('content').innerHTML = `
+ <h2>📊 Progress Report</h2>
+ <p>Score: ${score}</p>
+ <p>Level: ${level}</p>
+ <p>Keep practicing daily!</p>
+ `;
+}
+
+function levelUp() {
+ if (score >= level * 20) {
+   level++;
+   alert('🎉 Level Up!');
+ }
+}
+
+function save() {
+ localStorage.setItem('score', score);
+ localStorage.setItem('level', level);
+ document.getElementById('stars').innerHTML = '⭐ Score: ' + score;
+}
+
+save();
+</script>
+</body>
+</html>

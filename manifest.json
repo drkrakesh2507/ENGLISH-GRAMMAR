@@ -1,0 +1,17 @@
+{
+  "name": "Grammar Champ Kids",
+  "short_name": "GrammarChamp",
+  "description": "A child-friendly English grammar learning app with quizzes and voice support.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#dff6ff",
+  "theme_color": "#1d8ecf",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ]
+}
